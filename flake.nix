@@ -11,7 +11,6 @@
     lean4-nix = {
       url = "github:lenianiva/lean4-nix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-pats.url = "";
     };
   };
 
