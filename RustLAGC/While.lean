@@ -1,9 +1,7 @@
 -- This file demos the formalisation of WHILE in a LAGC semantic
+
 -- Based on Din et al., 2024
 import Std
-
-
-
 
 section ExampleWhile
 
