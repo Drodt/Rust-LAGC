@@ -25,7 +25,7 @@
       overlays = [ (lean4-nix.readToolchainFile ./lean-toolchain) ];
     };
   in {
-    devShells.${system}.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
       # Interactive packages
       packages = with pkgs; [
         nvim
