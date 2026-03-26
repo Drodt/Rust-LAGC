@@ -6,6 +6,7 @@
 
     nixNeovim = {
       url = "github:D3vZro/NixNeovim";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     lean4-nix = {
@@ -29,7 +30,6 @@
       # Interactive packages
       packages = with pkgs; [
         nvim
-        elan
         lean.lean-all
       ];
 
