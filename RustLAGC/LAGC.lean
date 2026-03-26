@@ -2,12 +2,13 @@
 -- Based on Drdot, 2026
 
 import Std
+import Mathlib.Data.Set.Basic
 
 abbrev Var := String
 
 inductive Val where
-  | tt
-  | ff
+  | tt : Val
+  | ff : Val
 
 inductive SValues where
   | n : Nat → SValues
