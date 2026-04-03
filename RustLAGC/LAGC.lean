@@ -2,7 +2,11 @@
 -- Based on Drdot, 2026
 
 import Std
+import Lean.Data.AssocList
 import Mathlib.Data.Set.Basic
+
+open Std
+open Lean
 
 -- Variables are simply of type String
 abbrev Var : Type := String
@@ -12,15 +16,15 @@ inductive Place where
   | v  : Var → Place
   | pN : Nat → Place
   -- | pI : Var → Place
-deriving Repr
+deriving instance BEq, Repr for Place
 
 inductive BId where
   | bId : Var → BId
-deriving Repr
+deriving instance BEq, Repr for BId
 
 inductive SVal where
-  | sym                       -- Equivalent to *
-  | B    : Bool  → SVal       -- Mapping Lean values directly to SVal
+  | sym -- Equivalent to *
+  | B    : Bool  → SVal -- Mapping Lean values directly to SVal
   | Z    : Int   → SVal
   | RefS : Place → BId → SVal -- Shared
   | RefM : Place → BId → SVal -- Mutable
@@ -28,18 +32,34 @@ inductive SVal where
   -- | Arr
   -- | Struct 
   -- | Enum
-deriving Repr
+  -- | Func : Var → SVal -- Function
+  deriving instance BEq, Repr for SVal
+
+open SVal
 
 -- Symbolic state
-abbrev σ := List (Var × SVal)
+-- TODO: Changed used data structure?
+abbrev State := List (Var × SVal)
+
+-- State update
+def σ_u (s : State) (u : Var × SVal) : SVal := sorry
+
+-- Symbolic variables
+def symb (σ : State) : List Var := (σ.filter (fun p => p.snd == sym)).map (fun c => c.fst)
+
+#eval symb [("x", sym), ("y", B true)]
 
 -- Symbolic traces
 inductive EvMarker where
   | ev
 
+-- Symbolic trace - Definition 2.1
 inductive SymTrace where
   | ε : SymTrace
-  | t : SVal → EvMarker → SymTrace
+  | t : SVal → SymTrace
 
-open Std
-
+-- Well-Formed and Shining Trace - Definition 2.2
+-- Definitions for use in proofs
+-- def varSym
+-- def evSym
+-- def exten
