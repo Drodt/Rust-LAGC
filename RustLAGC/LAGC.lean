@@ -9,49 +9,68 @@ open Std
 open Lean
 
 -- Variables are simply of type String
-abbrev Var : Type := String
+abbrev Var : Type := String 
 
 -- Starred values + additional data types
+
+-- Self explanatory
 inductive Place where
-  | v  : Var → Place
+  | pV : Var → Place
   | pN : Nat → Place
-  -- | pI : Var → Place
+
 deriving instance BEq, Repr for Place
 
+-- Burrow Identifier
 inductive BId where
   | bId : Var → BId
 deriving instance BEq, Repr for BId
 
 inductive SVal where
-  | sym -- Equivalent to *
-  | B    : Bool  → SVal -- Mapping Lean values directly to SVal
-  | Z    : Int   → SVal
-  | RefS : Place → BId → SVal -- Shared
-  | RefM : Place → BId → SVal -- Mutable
-  -- | Tup
+  | sym    : SVal  -- Equivalent to *
+  | b      : Bool  → SVal -- Mapping Lean values directly to SVal
+  | z      : Int   → SVal
+  | refS   : Place → BId → SVal -- Shared reference
+  | refM   : Place → BId → SVal -- Mutable reference
+  | tuple  : List SVal → SVal
   -- | Arr
-  -- | Struct 
+  | struct : Var × List (Place × SVal) → SVal -- Implied by rule 33
   -- | Enum
-  -- | Func : Var → SVal -- Function
-  deriving instance BEq, Repr for SVal
+  -- | Func : List Var → SVal → SVaL -- Function
+deriving instance BEq, Repr for SVal
 
 open SVal
 
 -- Symbolic state
--- TODO: Changed used data structure?
-abbrev State := List (Var × SVal)
+-- TODO: Change data structure?
+abbrev SymState := AssocList Var SVal
 
 -- State update
-def σ_u (s : State) (u : Var × SVal) : SVal := sorry
+def update (σ : SymState) (u : Var × SVal) : SymState := match σ with
+  | .nil       => σ.insert u.fst u.snd
+  | .cons x y xys  => if x == u.fst then σ.replace u.fst u.snd else .cons x y (update xys u)
 
--- Symbolic variables
-def symb (σ : State) : List Var := (σ.filter (fun p => p.snd == sym)).map (fun c => c.fst)
+-- Symbolic variables of a state
+def symb (σ : SymState) : List Var := (σ.toList.filter (fun p => p.snd == sym)).map (fun c => c.fst)
 
-#eval symb [("x", sym), ("y", B true)]
+#eval (update [].toAssocList' ("x", z 2)).toList
+#eval (update [("z", sym), ("x", z 2)].toAssocList' ("z", z 2)).toList
+#eval symb [("x", sym), ("y", b true)].toAssocList'
+
+/-
+  Traces and Evensts
+-/
+
+inductive EvMarker where
+  | evVar : Var → EvMarker
+  | evVal   : SVal → EvMarker
+  | evState : SymState → EvMarker
+  | ev      : List EvMarker → EvMarker
+
+inductive Trace where
+  | e : Trace
+  | s : SymState → Trace
 
 -- Symbolic traces
-inductive EvMarker where
-  | ev
 
 -- Symbolic trace - Definition 2.1
 inductive SymTrace where
@@ -59,7 +78,7 @@ inductive SymTrace where
   | t : SVal → SymTrace
 
 -- Well-Formed and Shining Trace - Definition 2.2
--- Definitions for use in proofs
+-- TODO: Definitions for use in proofs?
 -- def varSym
 -- def evSym
 -- def exten
