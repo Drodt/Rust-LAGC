@@ -8,23 +8,32 @@ import Mathlib.Data.Set.Basic
 open Std
 open Lean
 
--- Variables are simply of type String
-abbrev Var : Type := String 
-
 -- Starred values + additional data types
 
--- Self explanatory
+/--
+  Variables are simply Strings
+-/
+abbrev Var : Type := String 
+
+/--
+  TODO
+-/
 inductive Place where
   | pV : Var → Place
   | pN : Nat → Place
-
 deriving instance BEq, Repr for Place
 
--- Burrow Identifier
+/--
+  Burrow Identifier
+  TODO
+-/
 inductive BId where
   | bId : Var → BId
 deriving instance BEq, Repr for BId
 
+/--
+  Starred values
+-/
 inductive SVal where
   | sym    : SVal  -- Equivalent to *
   | b      : Bool  → SVal -- Mapping Lean values directly to SVal
@@ -40,45 +49,70 @@ deriving instance BEq, Repr for SVal
 
 open SVal
 
--- Symbolic state
--- TODO: Change data structure?
-abbrev SymState := AssocList Var SVal
+/--
+  Symbolic state
+  TODO: Change data structure?
+-/
+abbrev SymState :=
+  AssocList Var SVal
 
--- State update
-def update (σ : SymState) (u : Var × SVal) : SymState := match σ with
-  | .nil       => σ.insert u.fst u.snd
+inductive SState where
+  | nil : SState
+
+/--
+  State update
+-/
+def update (σ : SymState) (u : Var × SVal) : SymState := 
+  match σ with
+  | .nil           => σ.insert u.fst u.snd
   | .cons x y xys  => if x == u.fst then σ.replace u.fst u.snd else .cons x y (update xys u)
 
--- Symbolic variables of a state
-def symb (σ : SymState) : List Var := (σ.toList.filter (fun p => p.snd == sym)).map (fun c => c.fst)
+/--
+  Symbolic variables of a state
+-/
+def symb (σ : SymState) : List Var := 
+  (σ.toList.filter (fun p => p.snd == sym)).map (fun c => c.fst)
 
 #eval (update [].toAssocList' ("x", z 2)).toList
 #eval (update [("z", sym), ("x", z 2)].toAssocList' ("z", z 2)).toList
 #eval symb [("x", sym), ("y", b true)].toAssocList'
 
-/-
-  Traces and Evensts
--/
+-- Traces and Events
 
-inductive EvMarker where
-  | evVar : Var → EvMarker
-  | evVal   : SVal → EvMarker
-  | evState : SymState → EvMarker
-  | ev      : List EvMarker → EvMarker
-
-inductive Trace where
-  | e : Trace
-  | s : SymState → Trace
-
--- Symbolic traces
+-- Event markers, assuming event parameter location is irrelevant
+structure EvMarker where
+  ev  :: 
+  var : List Var
+  val : List SVal -- TODO: Exclude sym
 
 -- Symbolic trace - Definition 2.1
 inductive SymTrace where
-  | ε : SymTrace
-  | t : SVal → SymTrace
+  | ε    : SymTrace
+  | tS   : SymTrace → SymState → SymTrace -- Splitting the construction of trace may be sensible (also a bit of a constraint)
+  | tE   : SymTrace → EvMarker → SymTrace
+
+open SymTrace
+open EvMarker
+
+-- Empty trace
+#check ε
+
+-- Trace with state
+-- TODO: Create shortcut for singleton trace
+#check tS ε [("x", sym), ("y", b true)].toAssocList'
+
+-- Trace with event
+#check tE ε $ ev [] []
+
+#check (ε.tS [("x",sym)].toAssocList').tE $ ev [] []
+
+def concat (a b : SymTrace) : SymTrace := sorry
+
+def chop (a b : SymTrace) : SymTrace := sorry
 
 -- Well-Formed and Shining Trace - Definition 2.2
 -- TODO: Definitions for use in proofs?
 -- def varSym
 -- def evSym
 -- def exten
+
