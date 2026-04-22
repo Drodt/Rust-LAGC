@@ -13,7 +13,7 @@ open Lean
 /--
   Variables are simply Strings
 -/
-abbrev Var : Type := String 
+abbrev Var : Type := String
 
 /--
   TODO
@@ -56,21 +56,16 @@ open SVal
 abbrev SymState :=
   AssocList Var SVal
 
-inductive SState where
-  | nil : SState
-
-/--
-  State update
--/
-def update (σ : SymState) (u : Var × SVal) : SymState := 
-  match σ with
-  | .nil           => σ.insert u.fst u.snd
+-- State update
+-- TODO: Consider cases with arrays, tuples, strcuts, enums (p.2)
+def update (σ : SymState) (u : Var × SVal) : SymState := match σ with
+  | .nil       => σ.insert u.fst u.snd
   | .cons x y xys  => if x == u.fst then σ.replace u.fst u.snd else .cons x y (update xys u)
 
 /--
   Symbolic variables of a state
 -/
-def symb (σ : SymState) : List Var := 
+def symb (σ : SymState) : List Var :=
   (σ.toList.filter (fun p => p.snd == sym)).map (fun c => c.fst)
 
 #eval (update [].toAssocList' ("x", z 2)).toList
@@ -81,7 +76,7 @@ def symb (σ : SymState) : List Var :=
 
 -- Event markers, assuming event parameter location is irrelevant
 structure EvMarker where
-  ev  :: 
+  ev  ::
   var : List Var
   val : List SVal -- TODO: Exclude sym
 
