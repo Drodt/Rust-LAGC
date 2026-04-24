@@ -1,36 +1,42 @@
 -- Formalisation of Rust syntax
 -- Based on Drdot, 2026
 
--- Placeholder values
+-- Placeholder types
 opaque Val : Type
-opaque Var : Type
 opaque Label : Type
+opaque Var : Type
 
-inductive RStmt where
+inductive RExp where
   -- TODO: Splitting syntax between inductives causes boilerplate
   -- But does not restrict properly
   -- RExp
-  | v     : Val   → RStmt
-  | not   : RStmt → RStmt
-  | eq    : Var   → RStmt → RStmt
+  | v     : Val   → RExp
+  | x     : Var   → RExp
+  | not   : RExp → RExp
+  | eq    : Var   → RExp → RExp
   -- Block
-  | ife   : RStmt → RStmt → RStmt → RStmt
-  | loop  : Label → RStmt
-  | panic : RStmt
-  -- RStmt
-  | lt  : Var → Val → RStmt
-
-structure RFunc where
-  iden : Label
-  par  : List Var
-  exp  : RStmt
-
-structure RProg where
-  foo : List RFunc
+  | ife   : RExp → RExp → RExp → RExp
+  | loop  : Label → RExp
+  | panic : RExp
+  -- RExp
+  | lt  : Var → Val → RExp
 
 inductive ROp where
   | add
   | sub
   | mul
 -- Expand on demand
+
+-- Struct und Tuple sind recht ähnlich, eins sollte drin sein
+
+-- Function definition
+structure RFunc where
+  iden : Label
+  par  : List Var
+  exp  : RExp
+
+-- Program definition
+structure RProg where
+  foo  : List RFunc
+  main : RFunc -- War mal RExp
 
