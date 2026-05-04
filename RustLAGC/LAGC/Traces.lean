@@ -4,7 +4,7 @@ import Std
 import Lean.Data.AssocList
 
 import RustLAGC.Rust
-import RustLAGC.LAGC.Basic
+import RustLAGC.LAGC.Values
 
 namespace SVal
 
