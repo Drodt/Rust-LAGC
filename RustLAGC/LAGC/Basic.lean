@@ -1,3 +1,5 @@
+-- Values and states - 2.1
+
 import Std
 import Lean.Data.AssocList
 
@@ -34,16 +36,17 @@ deriving instance BEq, Repr for SVal
 open SVal
 
 /--
-  Symbolic state
-  TODO: Change data structure?
+  Symbolic state is a list of mappings Var → SVal
+  Consider the usage of list-specific operations like map via toList
 -/
-abbrev SymState :=
-  AssocList LVar SVal
+abbrev SymState := AssocList LVar SVal
 
--- State update
 -- TODO: Consider cases with arrays, tuples, strcuts, enums (p.2)
+/--
+  Simple state update
+-/
 def update (σ : SymState) (u : LVar × SVal) : SymState := match σ with
-  | .nil       => σ.insert u.fst u.snd
+  | .nil           => σ.insert u.fst u.snd
   | .cons x y xys  => if x == u.fst then σ.replace u.fst u.snd else .cons x y (update xys u)
 
 /--

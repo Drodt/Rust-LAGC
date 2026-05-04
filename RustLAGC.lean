@@ -15,6 +15,7 @@ open EvMarker
 #eval (update [("z", sym), ("x", z 2)].toAssocList' ("z", z 2)).toList
 #eval symb [("x", sym), ("y", b true)].toAssocList'
 
+#check ε 
 #check tS ε [("x", sym), ("y", b true)].toAssocList'
 #check tE ε $ ev [] []
 #check (ε.tS [("x",sym)].toAssocList').tE $ ev [] []
