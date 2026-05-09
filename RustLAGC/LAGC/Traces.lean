@@ -1,4 +1,4 @@
--- Traces and Events - 2.2
+-- Traces and Events - Section 2.2
 
 import Std
 import Lean.Data.AssocList
@@ -11,13 +11,20 @@ namespace SVal
 -- Event markers, assuming event parameter location is irrelevant
 -- TODO: Rework
 -- Remark: Events festlegen, einschränken ggü. allgemeiner Definition aus Paper
+
 /--
   Inductive type of event markers
 -/
+inductive Event where
+  | invEv 
+  | panicEv
+
+/-
 structure EvMarker where
   ev  ::
   var : List Var
   val : List SVal -- TODO: Exclude sym
+-/
 
 -- Symbolic trace - Definition 2.1
 -- Splitting the construction of trace may be sensible (also a bit of a constraint)
@@ -27,11 +34,10 @@ structure EvMarker where
 inductive SymTrace where
   | ε    : SymTrace
   | tS   : SymTrace → SymState → SymTrace 
-  | tE   : SymTrace → EvMarker → SymTrace
-
+  | tE   : SymTrace → Event → SymTrace
 
 open SymTrace
-open EvMarker
+open Event
 
 /--
   Singleton trace
