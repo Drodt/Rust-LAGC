@@ -1,25 +1,13 @@
--- Formalisation of Rust syntax
--- Based on Drdot, 2026
+/-
+  Work Package A2
+
+  Based on section 3
+-/
 
 -- Placeholder types
-opaque Val : Type
+abbrev RVal := String
 opaque Label : Type
 opaque Var : Type
-
-inductive RExp where
-  -- TODO: Splitting syntax between inductives causes boilerplate
-  -- But does not restrict properly
-  -- RExp
-  | v     : Val   → RExp
-  | x     : Var   → RExp
-  | not   : RExp → RExp
-  | eq    : Var   → RExp → RExp
-  -- Block
-  | ife   : RExp → RExp → RExp → RExp
-  | loop  : Label → RExp
-  | panic : RExp
-  -- RExp
-  | lt  : Var → Val → RExp
 
 inductive ROp where
   | add
@@ -27,16 +15,36 @@ inductive ROp where
   | mul
 -- Expand on demand
 
+/--
+  Type of Rust statements
+
+  Rust expresssions are a subset of statements, preventing boiler plate constructors
+-/
+inductive RStmt where
+  -- RExp
+  | v     : RVal   → RStmt
+  | x     : Var   → RStmt
+  | not   : RStmt → RStmt
+  | eq    : Var   → RStmt → RStmt
+  | op    : RStmt → ROp → RStmt → RStmt
+  -- | Block
+  | ife   : RStmt → RStmt → RStmt → RStmt
+  | loop  : Label → RStmt
+  | panic : RStmt
+  | arr   : Array RStmt → RStmt
+  -- RStmt
+  | lt  : Var → RVal → RStmt
+
 -- Struct und Tuple sind recht ähnlich, eins sollte drin sein
 
 -- Function definition
 structure RFunc where
   iden : Label
   par  : List Var
-  exp  : RExp
+  exp  : RStmt
 
 -- Program definition
 structure RProg where
   foo  : List RFunc
-  main : RFunc -- War mal RExp
+  main : RFunc -- War mal RStmt
 

@@ -1,4 +1,8 @@
--- Section 3.1
+/-
+  Work Package A3
+
+  Based on section 3.1
+-/
 
 import Std
 import Lean.Data.AssocList
@@ -15,4 +19,6 @@ open SymTrace
 open RExp
 
 def eval (σ : SymState := AssocList.nil) (e : RExp) : List SymTrace := match e with
-  | v a => [ tS ε σ  ]
+  | .v a   => [ single σ ]
+  | .not a => [ single σ ]
+  | _ => sorry

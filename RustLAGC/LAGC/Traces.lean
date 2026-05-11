@@ -1,4 +1,8 @@
--- Traces and Events - Section 2.2
+/-
+  Work Package A2
+
+  Based on section 2
+-/
 
 import Std
 import Lean.Data.AssocList
@@ -20,11 +24,13 @@ inductive Event where
   | panicEv
 
 /-
-structure EvMarker where
-  ev  ::
-  var : List Var
-  val : List SVal -- TODO: Exclude sym
+  Previous, general-purpose definition of events
+  Not necessary for the scope
 -/
+-- structure EvMarker where
+--   ev  ::
+--   var : List Var
+--   val : List SVal -- TODO: Exclude sym
 
 -- Symbolic trace - Definition 2.1
 -- Splitting the construction of trace may be sensible (also a bit of a constraint)

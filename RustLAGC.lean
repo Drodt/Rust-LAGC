@@ -7,8 +7,9 @@ import RustLAGC.LAGC.Traces
 import RustLAGC.LAGC.Eval
 
 open SVal
+open SymState
 open SymTrace
-open EvMarker
+open Event
 
 #eval (update [].toAssocList' ("x", z 2)).toList
 #eval (update [("z", sym), ("x", z 2)].toAssocList' ("z", z 2)).toList

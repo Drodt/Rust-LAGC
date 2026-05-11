@@ -1,4 +1,8 @@
--- Values and states - Section 2
+/-
+  Work Package A2
+
+  Based on section 2
+-/
 
 import Std
 import Lean.Data.AssocList
@@ -7,7 +11,11 @@ open Std
 open Lean
 
 /--
+<<<<<<< Updated upstream
   Type of variables
+=======
+  Variables in LAGC
+>>>>>>> Stashed changes
 -/
 abbrev LVar : Type := String
 
@@ -15,14 +23,15 @@ abbrev LVar : Type := String
   Type of places
 -/
 inductive Place where
-  | pV : LVar → Place
-  | pN : Nat  → Place
-  | pP : Place → Place
+  | pV : LVar  → Place          -- Var
+  | pN : Nat   → Place          -- Arrays
+  | pI : Place → String → Place -- Structs
 deriving instance BEq, Repr for Place
 
 /--
   Type of borrow identifiers
 -/
+-- TODO: Simplify to String?
 inductive BId where
   | bId : LVar → BId
 deriving instance BEq, Repr for BId
@@ -39,8 +48,8 @@ inductive SVal where
   | tuple  : List SVal  → SVal
   | arr    : Array SVal → SVal
   | struct : LVar × List (Place × SVal) → SVal 
-  -- | Enum
-  -- | Func : List LVar → SVal → SVaL -- Function
+  -- | Enums
+  -- | Func : List LVar → SVal → SVaL -- Function (?)
 deriving instance BEq, Repr for SVal
 
 open SVal
@@ -55,7 +64,7 @@ abbrev SymState := AssocList LVar SVal
 /--
   State update
 -/
-def update (σ : SymState) (u : LVar × SVal) : SymState := match σ with
+def SymState.update (σ : SymState) (u : LVar × SVal) : SymState := match σ with
   | .nil           =>
     σ.insert u.fst u.snd
   | .cons x y xys  =>
@@ -64,5 +73,5 @@ def update (σ : SymState) (u : LVar × SVal) : SymState := match σ with
 /--
   Symbolic variables of a state
 -/
-def symb (σ : SymState) : List LVar :=
+def SymState.symb (σ : SymState) : List LVar :=
   (σ.toList.filter (fun p => p.snd == sym)).map (fun c => c.fst)
