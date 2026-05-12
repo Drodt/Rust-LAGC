@@ -4,11 +4,16 @@
   Based on section 3
 -/
 
--- Placeholder types
-abbrev RVal := String
-opaque Label : Type
-opaque Var : Type
+/--
+  Types of identifiers
+-/
+abbrev RVal := Type
+abbrev Label := String
+abbrev Var := String
 
+/--
+  Enum of allowed operations in Rust
+-/
 inductive ROp where
   | add
   | sub
@@ -17,34 +22,41 @@ inductive ROp where
 
 /--
   Type of Rust statements
+-/
+inductive RExp where
+  | v     : RVal   → RExp
+  | x     : Var   → RExp
+  | not   : RExp → RExp
+  | eq    : Var   → RExp → RExp
+  | op    : RExp → ROp → RExp → RExp
+  -- | Block
+  | ife   : RExp → RExp → RExp → RExp
+  | loop  : Label → RExp
+  | panic : RExp
+  | arr   : Array RExp → RExp
 
-  Rust expresssions are a subset of statements, preventing boiler plate constructors
+/--
+  Type of Rust statements
 -/
 inductive RStmt where
-  -- RExp
-  | v     : RVal   → RStmt
-  | x     : Var   → RStmt
-  | not   : RStmt → RStmt
-  | eq    : Var   → RStmt → RStmt
-  | op    : RStmt → ROp → RStmt → RStmt
-  -- | Block
-  | ife   : RStmt → RStmt → RStmt → RStmt
-  | loop  : Label → RStmt
-  | panic : RStmt
-  | arr   : Array RStmt → RStmt
-  -- RStmt
+  | mk  : RExp → RStmt 
   | lt  : Var → RVal → RStmt
 
--- Struct und Tuple sind recht ähnlich, eins sollte drin sein
+/--
+  Function definition in Rust
 
--- Function definition
+  Example:
+    func "Hello World" [] RExp.v 2
+-/
 structure RFunc where
+  func :: 
   iden : Label
   par  : List Var
-  exp  : RStmt
+  exp  : RExp
 
 -- Program definition
 structure RProg where
+  prog :: 
   foo  : List RFunc
-  main : RFunc -- War mal RStmt
+  main : RFunc
 

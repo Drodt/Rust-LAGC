@@ -16,9 +16,12 @@ open Lean
 
 open SVal
 open SymTrace
-open RExp
+open RStmt
 
-def eval (σ : SymState := AssocList.nil) (e : RExp) : List SymTrace := match e with
-  | .v a   => [ single σ ]
-  | .not a => [ single σ ]
+/--
+  Local evaluation function
+-/
+def eval (σ : SymState := AssocList.nil) (e : RStmt) : List SymTrace := match e with
+  | .mk $ .v a   => [ single σ ]
+  | .mk $ .not a => [ single σ ]
   | _ => sorry

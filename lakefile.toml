@@ -5,7 +5,7 @@ defaultTargets = ["RustLAGC"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
-autoImplicit = false
+autoImplicit = true
 
 [[require]]
 name = "mathlib"
