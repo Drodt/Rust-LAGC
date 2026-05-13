@@ -7,8 +7,7 @@
 import Std
 import Lean.Data.AssocList
 
-import RustLAGC.Rust
-import RustLAGC.LAGC.Values
+import RustLAGC.Structures.Values
 
 namespace SVal
 

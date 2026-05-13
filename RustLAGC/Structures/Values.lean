@@ -11,11 +11,7 @@ open Std
 open Lean
 
 /--
-<<<<<<< Updated upstream
-  Type of variables
-=======
-  Variables in LAGC
->>>>>>> Stashed changes
+  Type of variables in LAGC
 -/
 abbrev LVar : Type := String
 
