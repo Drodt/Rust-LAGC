@@ -36,6 +36,7 @@ inductive Event where
 /--
   Construction of symbolic traces
 -/
+-- TODO: Rework definition
 inductive SymTrace where
   | ε    : SymTrace
   | tS   : SymTrace → SymState → SymTrace 
@@ -54,26 +55,32 @@ def single (s : SymState) := tS ε s
 
 -- TODO: Example
 -- Relevant für Continuation Marker. Kommt auf die Lean-Implemenation an
-/--
+/-
   Concatenation of two symbolic traces
 -/
-def concat (a b : SymTrace) : SymTrace := sorry
+def concat (a b : SymTrace) : SymTrace := match a, b with
+  | _ , ε       => a
+  | ε , _       => b
+  | x , tS t s  => sorry
+  | x , tE t e  => sorry
 
-/--
+/-
   Symbolic chop; stitching together two traces
 -/
-def chop (a b : SymTrace) : SymTrace := sorry
+-- def chop (a b : SymTrace) : SymTrace := match a, b with
+--   | _ , _ => sorry
 
--- Concretization Mapping
-def concrete (x : Var) : SVal := sorry
+/-
+  Concretization Mapping
+-/
+-- def concrete (x : Var) : SVal := sorry
 
 -- Trace Concretization
 -- def concrete (x : Var) : SVal := sorry
 
--- TODO: Einige neue Propositions in der neuen Form
 -- Well-Formed and Shining Trace - Definition 2.2
--- TODO: Definitions for use in proofs?
 inductive varSym : Prop
+  | sym
 inductive evSym  : Prop
 inductive exten  : Prop
 

@@ -9,7 +9,7 @@ import Lean.Data.AssocList
 
 import RustLAGC.Structures.Values
 import RustLAGC.Structures.Traces
-import RustLAGC.Rust
+import RustLAGC.Structures.Rust
 
 open Std
 open Lean
@@ -22,8 +22,8 @@ open RStmt
   Local evaluation function
 -/
 -- TODO: Sind Listen zukunftsfähig? Besonders im Kontext unendliche Traces
--- NIklas Arbeits diesbezüglich sichten
--- Contirnuation marker bauen
+-- Niklas Arbeits diesbezüglich sichten
+-- Contirnuation Marker bauen
 def eval (σ : SymState := AssocList.nil) (e : RExp) : List SymTrace := match e with
   | .v a   => [ single σ ]
   | .not a => [ single σ ]
