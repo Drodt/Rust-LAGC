@@ -27,7 +27,7 @@ inductive RExp where
   | v     : RVal   → RExp
   | x     : Var   → RExp
   | not   : RExp → RExp
-  | eq    : Var   → RExp → RExp
+  | eq    : Var   → RExp → RExp -- TODO: Fix wrong syntax
   | op    : RExp → ROp → RExp → RExp
   -- | Block
   | ife   : RExp → RExp → RExp → RExp
