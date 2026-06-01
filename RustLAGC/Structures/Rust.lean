@@ -7,9 +7,11 @@
 /--
   Types of identifiers
 -/
-abbrev RVal := Type
 abbrev Label := String
 abbrev Var := String
+
+inductive RVal : Type where
+  | bool: Bool → RVal
 
 /--
   Enum of allowed operations in Rust

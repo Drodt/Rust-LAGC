@@ -56,6 +56,11 @@ open SVal
 -/
 abbrev SymState := AssocList LVar SVal
 
+/--
+  Constructor abbreviation
+-/
+def SymState.mk (x : List (LVar × SVal)) : SymState := x.toAssocList'
+
 -- TODO: Consider cases with arrays, tuples, strcuts, enums (p.2)
 /--
   State update
