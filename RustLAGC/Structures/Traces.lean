@@ -85,14 +85,13 @@ inductive ContMarker where
 
 -- Well-Formed and Shining Trace - Definition 2.2
 inductive varSym : Prop
-  | sym
+  | s
 inductive evSym  : Prop
 inductive exten  : Prop
 
-
 -- Example 2.3
 def σ₀: SymState := .mk [("X", sym), ("y", b false)]
-#check ((singleton σ₀).tE ⟨ "ev₀", [EvPar.var "X"]⟩).tS (σ₀.update ("y", b true))
+#check ((singleton σ₀).tE ⟨ "ev₀", [EvPar.var "X"]⟩).tS (σ₀.updateVar ("y", b true))
 
 -- Other examples
 -- Empty trace

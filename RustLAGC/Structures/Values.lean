@@ -27,9 +27,8 @@ deriving instance BEq, Repr for Place
 /--
   Type of borrow identifiers
 -/
--- TODO: Simplify to String?
 inductive BId where
-  | bId : LVar → BId
+  | mk : LVar → BId
 deriving instance BEq, Repr for BId
 
 /--
@@ -52,7 +51,7 @@ open SVal
 
 /--
   Symbolic state is a list of mappings Var → SVal
-  Consider the usage of list-specific operations like map via toList
+  Consider the usage of list-specific operations like `map` via `toList`
 -/
 abbrev SymState := AssocList LVar SVal
 
@@ -61,15 +60,17 @@ abbrev SymState := AssocList LVar SVal
 -/
 def SymState.mk (x : List (LVar × SVal)) : SymState := x.toAssocList'
 
--- TODO: Consider cases with arrays, tuples, strcuts, enums (p.2)
 /--
   State update
 -/
-def SymState.update (σ : SymState) (u : LVar × SVal) : SymState := match σ with
+def SymState.updateVar (σ : SymState) (u : LVar × SVal) : SymState := match σ with
   | .nil           =>
     σ.insert u.fst u.snd
   | .cons x y xys  =>
-    if x == u.fst then σ.replace u.fst u.snd else .cons x y (update xys u)
+    if x == u.fst then σ.replace u.fst u.snd else .cons x y (updateVar xys u)
+
+-- TODO: Consider cases with arrays, tuples, strcuts, enums (p.2)
+def SymState.updatePlace (σ : SymState) (u : Place × SVal) : SymState := sorry
 
 /--
   Symbolic variables of a state

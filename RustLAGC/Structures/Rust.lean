@@ -11,7 +11,9 @@ abbrev Label := String
 abbrev Var := String
 
 inductive RVal : Type where
-  | bool: Bool → RVal
+  | bool : Bool → RVal
+  | nat  : Nat  → RVal 
+  | int  : Int  → RVal
 
 /--
   Enum of allowed operations in Rust
