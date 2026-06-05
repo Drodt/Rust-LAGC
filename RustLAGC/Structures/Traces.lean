@@ -76,7 +76,7 @@ def concat (a b : SymTrace) : SymTrace := match a, b with
 
 -- Trace Concretization
 -- def concrete (x : Var) : SVal := sorry
-
+-- TODO: Values zu Expression abbilden per Funktion oder Typsystem
 inductive ContMarker where
   | mk : RExp → ContMarker
 
