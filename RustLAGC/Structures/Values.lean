@@ -70,10 +70,18 @@ def SymState.updateVar (σ : SymState) (u : LVar × SVal) : SymState := match σ
     if x == u.fst then σ.replace u.fst u.snd else .cons x y (updateVar xys u)
 
 -- TODO: Consider cases with arrays, tuples, strcuts, enums (p.2)
-def SymState.updatePlace (σ : SymState) (u : Place × SVal) : SymState := sorry
+def SymState.updatePlace (σ : SymState) (u : Place × SVal) : SymState := match σ with
+  | .nil => sorry
+  | .cons x y xys => sorry
 
 /--
-  Symbolic variables of a state
+  Symbolic variables of a symbolic state
 -/
 def SymState.symb (σ : SymState) : List LVar :=
   (σ.toList.filter (fun p => p.snd == sym)).map (fun c => c.fst)
+
+/--
+  Domain of a symbolic state
+-/
+def SymState.dom (σ : SymState) : List LVar :=
+  σ.toList.map fun x => x.fst
