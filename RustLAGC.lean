@@ -1,10 +1,10 @@
 -- This module serves as the root of the `RustLAGC` library. Import modules here that should be built as part of the library.
 -- import RustLAGC.While
 
-import RustLAGC.Rust
-import RustLAGC.LAGC.Values
-import RustLAGC.LAGC.Traces
-import RustLAGC.LAGC.Eval
+import RustLAGC.Structures.Rust
+import RustLAGC.Structures.Values
+import RustLAGC.Structures.Traces
+import RustLAGC.Eval
 
 open SVal
 open SymState
