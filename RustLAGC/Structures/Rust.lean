@@ -8,7 +8,11 @@
   Types of identifiers
 -/
 abbrev Label := String
-abbrev Var := String
+
+/--
+  Type of Rust variable names
+-/
+abbrev RVar := String
 
 inductive RVal : Type where
   | bool : Bool → RVal
@@ -29,7 +33,7 @@ inductive ROp where
 -/
 inductive RExp where
   | v     : RVal   → RExp
-  | x     : Var   → RExp
+  | x     : RVar   → RExp
   | not   : RExp → RExp
   | op    : RExp → ROp → RExp → RExp
   -- | Block
@@ -43,7 +47,7 @@ inductive RExp where
 -/
 inductive RStmt where
   | mk  : RExp → RStmt 
-  | lt  : Var → RVal → RStmt
+  | lt  : RVar → RVal → RStmt
 
 /--
   Function definition in Rust
@@ -54,7 +58,7 @@ inductive RStmt where
 structure RFunc where
   func :: 
   iden : Label
-  par  : List Var
+  par  : List RVar
   exp  : RExp
 
 -- Program definition

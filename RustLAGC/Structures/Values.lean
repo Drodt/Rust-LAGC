@@ -11,7 +11,7 @@ open Std
 open Lean
 
 /--
-  Type of variables in LAGC
+  Type of variables in LAGC. Abbreviation of type String.
 -/
 abbrev LVar : Type := String
 
@@ -70,6 +70,7 @@ def SymState.updateVar (σ : SymState) (u : LVar × SVal) : SymState := match σ
     if x == u.fst then σ.replace u.fst u.snd else .cons x y (updateVar xys u)
 
 -- TODO: Consider cases with arrays, tuples, strcuts, enums (p.2)
+-- Not trivial, requires wild typing stuff 
 def SymState.updatePlace (σ : SymState) (u : Place × SVal) : SymState := match σ with
   | .nil => sorry
   | .cons x y xys => sorry

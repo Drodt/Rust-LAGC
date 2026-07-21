@@ -13,14 +13,14 @@ import RustLAGC.Structures.Rust
 namespace SVal
 
 /-
-/--
-  Type of events
+  /--
+    Type of events
 
-  Alternative to string-based events
--/
-inductive Event where
-  | invEv
-  | compREv
+    Alternative to string-based events
+  -/
+  inductive Event where
+    | invEv
+    | compREv
 -/
 
 /--
@@ -53,7 +53,6 @@ open EventMarker
 def SymTrace.singleton (s : SymState) := tS ε s
 
 
--- Relevant für Continuation Marker. Kommt auf die Lean-Implemenation an
 /-
   Concatenation of two symbolic traces
 -/
