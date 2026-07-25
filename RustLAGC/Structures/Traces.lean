@@ -245,7 +245,7 @@ end SymTrace
   | event ev =>
     simp [*]
 
-theorem ConcrMap.applyOnTrace_allStatesAgree (ρ : ConcrMap) (τ : SymTrace) (hFor : ρ.isForTr τ) (hWF : τ.wellFormed) :
+theorem ConcrMap.applyOnTrace_allStatesAgree (ρ : ConcrMap) (τ : SymTrace) (hFor : ρ.isForTr τ) :
   (ρ.applyOnTrace τ).states.all (fun σ => σ.dom.all (fun x => σ.symb.contains x || ¬(ρ.applyOnTrace τ).symb.contains x)) := by
   simp [*]
   intro t h1
@@ -260,42 +260,44 @@ theorem ConcrMap.applyOnTrace_allStatesAgree (ρ : ConcrMap) (τ : SymTrace) (hF
     apply And.intro
     case left =>
       intro x v h2
-      let symbResEmpty := ConcrMap.applyOnTr_symb_isEmpty ρ τ hFor
-      simp [*] at symbResEmpty
-      let x_not_in_symbRes : ¬(ρ.applyOnTrace τ).symb.contains x := by
-        simp [*]
-        intro xs  σ' t t_in_τ
-        let symbResEmpty' := symbResEmpty xs σ' t t_in_τ
-        by_cases h : (ρ.applyOnTrace τ).symb = xs
-        case pos =>
-          sorry
-        case neg =>
-          simp [*] at h
-          sorry
       apply Or.inr
       intro xs σ' t t_in_τ t_is_st xs_is_σ'_symb
       induction t with
-      | state =>
+      | state σ'' =>
         simp [*] at t_is_st
+        let hFor_σ'' : ρ.isFor σ'' := by
+          simp [*] at hFor
+          let hFor' := hFor (TraceElem.state σ'')
+          simp [*]
+        let σ'_isConcrete : (ρ.applyOnState σ'').isConcrete := ConcrMap.applyOnState_isConcrete ρ σ'' hFor_σ''
+        simp [*] at σ'_isConcrete
+        simp [*]
       | event =>
         simp [*] at t_is_st
-      /- by_cases inSig : σ.contains x
-      case pos =>
-        simp [*] at inSig
-        let ⟨sv, svInSig⟩ := inSig
-        induction sv with
-        | sym =>
-
-          sorry
-        | val v' =>
-          let hForSig' := hForSig.right x (val v')
-          simp [*] at hForSig'
-          sorry
-      case neg =>
-        sorry -/
     case right =>
       intro x sv h2
-      sorry
+      induction sv with
+      | sym =>
+        let h3 := hForSig.left x sym h2
+        simp [*] at h3
+        apply Or.intro_left
+        exact h3
+      | val v =>
+        apply Or.intro_right
+        apply Or.intro_right
+        intro xs σ' t t_in_τ t_is_st xs_is_σ'_symb
+        induction t with
+        | state σ'' =>
+          simp [*] at t_is_st
+          let hFor_σ'' : ρ.isFor σ'' := by
+            simp [*] at hFor
+            let hFor' := hFor (TraceElem.state σ'')
+            simp [*]
+          let σ'_isConcrete : (ρ.applyOnState σ'').isConcrete := ConcrMap.applyOnState_isConcrete ρ σ'' hFor_σ''
+          simp [*] at σ'_isConcrete
+          simp [*]
+        | event ev =>
+          simp [*] at t_is_st
   | event ev =>
     simp [*]
 
@@ -368,7 +370,7 @@ theorem ConcrMap.applyOnTrace_allEventsSurrounded (ρ : ConcrMap) (τ : SymTrace
   case left =>
     apply And.intro
     case left =>
-      let h1 := ConcrMap.applyOnTrace_allStatesAgree ρ τ hFor hWF
+      let h1 := ConcrMap.applyOnTrace_allStatesAgree ρ τ hFor
       simp [*] at h1
       intro t h2
       let h1' := h1 t
