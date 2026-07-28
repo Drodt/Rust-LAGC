@@ -236,15 +236,34 @@ instance : BEq SymState where
       apply And.intro
       case left =>
         intro x sv x_in_σ x_not_in_xs x' sv' x'_in_σ x'_not_in_xs y sy y_in_σ y_not_in_xs xy_in_σ x'y_in_σ
+        induction σ with
+        | nil => simp [*] at x_in_σ
+        | cons x'' sv'' σ' ih =>
+          simp [*] at xy_in_σ x'y_in_σ
 
-
-        sorry
+          sorry
       case right =>
-        sorry
+        apply And.intro
+        case left =>
+          intro x sv x_in_σ x_not_in_xs
+          exists x
+          induction σ with
+          | nil => simp [*] at x_in_σ
+          | cons x' sv' σ' ih =>
+            simp [*]
+            by_cases h : x = x'
+            case pos => simp [*]
+            case neg =>
+              simp [*]
+              simp [*] at x_in_σ
+              exists sv
+        case right =>
+
+          sorry
 
 @[simp] def SymState.eqModR.symm (σ1 σ2 : SymState) (xs : List LVar) (noDups1 : σ1.noDups) (noDups2 : σ2.noDups) : σ1.eqModR σ2 xs → σ2.eqModR σ1 xs := by
   simp [*]
-  intro h1 h2 h3 κ h4
+  intro h1 h2 h3 κ h4 h5 h6 h7 h8
   apply And.intro
   case left =>
     intro x sv x_in_σ2
@@ -269,8 +288,8 @@ instance : BEq SymState where
         simp [*]
       case right =>
         exists (κ.toList.map (fun (x,x') => (x',x))).toAssocList
-        intro x sv x_in_σ2 x_not_in_xs
         simp [*]
+        sorry
 
         /- by_cases x ∈ σ1.dom
         case pos x_in_σ1 =>
