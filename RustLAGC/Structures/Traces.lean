@@ -350,9 +350,23 @@ theorem ConcrMap.applyOnTrace_allEventVarsSym (ρ : ConcrMap) (τ : SymTrace) (h
           by_cases fits : x = x'
           case pos =>
             simp [*]
-            sorry
+            simp [*] at hNoDups
+            let h9 := hNoDups.left x v
+            simp [*] at h9
+            simp [*] at hv
+            simp [*]
           case neg =>
-            sorry
+            let x_in_ρ' : (x, v) ∈ ρ'.toList := by
+              simp [*] at hv
+              exact hv
+            simp [*]
+            apply Or.intro_right
+            apply And.intro
+            case left =>
+              grind only
+            case right =>
+
+              sorry
       sorry
 
 theorem ConcrMap.applyOnTrace_allEventsSurrounded (ρ : ConcrMap) (τ : SymTrace) (hFor : ρ.isForTr τ) (hWF : τ.wellFormed) :

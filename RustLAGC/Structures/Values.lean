@@ -108,6 +108,64 @@ def SymState.updateVar (σ : SymState) (x : LVar)  (v : SVal) : SymState := σ.i
 | AssocList.nil => true
 | AssocList.cons x _ σ' => ¬σ'.contains x ∧ noDups σ'
 
+@[simp] def SymState.find_noDups (σ : SymState) (noDups : σ.noDups) (x : LVar) (sv : SVal) : (σ.find? x = some sv) ↔ ((x, sv) ∈ σ.toList) := by
+  simp [*]
+  apply Iff.intro
+  case mp =>
+    intro h
+    induction σ with
+    | nil => simp [*] at h
+    | cons x' sv' σ' ih =>
+      simp [*] at noDups
+      simp [*] at ih
+      by_cases x_eq_x' : x = x'
+      case pos =>
+        simp [*]
+        let ⟨a, h'⟩ := h
+        simp [*] at h'
+        simp [*]
+      case neg =>
+        simp [*]
+        let ⟨a, h'⟩ := h
+        let ih' := ih a
+        simp [*] at h'
+        simp [*] at ih'
+        let ne : ¬ x'=x := by
+          grind only
+        simp [*] at h'
+        simp [*]
+  case mpr =>
+    intro h
+    induction σ with
+    | nil => simp [*] at h
+    | cons x' sv' σ' ih =>
+      simp [*]
+      exists x
+      simp [*]
+      by_cases x' = x
+      case pos x_eq_x' =>
+        simp [*]
+        simp [*] at noDups
+        let noDups' := noDups.left x sv
+        simp [*] at h
+        by_cases (x, sv) ∈ σ'.toList
+        case pos h' =>
+          simp [*] at noDups'
+        case neg h' =>
+          simp [*] at h
+          simp [*]
+      case neg ne =>
+        simp [*]
+        simp [*] at noDups
+        simp [*] at ih
+        simp [*] at h
+        let ne' : ¬x=x' := by grind only
+        simp [*] at h
+        simp [*] at ih
+        let ⟨a, ih'⟩ := ih
+        simp [*]
+        grind only [→ List.find?_some]
+
 @[simp] def SymState.extends (σ1 σ2 : SymState) : Bool := σ1.all
   (fun x v => σ2.find? x == some v)
 
@@ -132,3 +190,107 @@ instance : BEq SymState where
       simp [*] at h2
   simp [*] at h1
   exact h1.left
+
+@[simp] def SymState.eqModR (σ1 σ2 : SymState) (xs : List LVar) : Prop :=
+  σ1.dom.all (fun x => (x ∈ xs) -> x ∈ σ2.dom)
+  ∧ σ2.dom.all (fun x => (x ∈ xs) -> x ∈ σ1.dom)
+  ∧ (∀ x ∈ σ1.dom, (x ∈ xs) -> σ1.find? x = σ2.find? x)
+  ∧ ∃ κ : AssocList LVar LVar,
+    (∀ x ∈ σ1.dom, ¬x ∈ xs -> ∃ y, (x, y) ∈ κ.toList) -- domain
+    ∧ (∀ x1 ∈ σ1.dom, ¬x1 ∈ xs -> ∀ x2 ∈ σ1.dom, ¬x2 ∈ xs -> ∀ y ∈ σ2.dom, ¬y ∈ xs → (x1, y) ∈ κ.toList ∧ (x2, y) ∈ κ.toList → x1 = x2) -- injective
+    ∧ (∀ x ∈ σ2.dom, ¬x ∈ xs -> ∃ y, (y, x) ∈ κ.toList) -- surjective
+    ∧ (∀ x ∈ σ1.dom, ¬x ∈ xs -> ∀ y1 ∈ σ2.dom, ¬y1 ∈ xs -> ∀ y2 ∈ σ2.dom, ¬y2 ∈ xs → (x, y1) ∈ κ.toList ∧ (x, y2) ∈ κ.toList → y1 = y2) -- function
+    ∧ (∀ x ∈ σ1.dom, (¬x ∈ xs) -> σ1.find? x = σ2.find? (κ.find? x).get!)
+
+@[simp] def SymState.eqModR.refl (σ : SymState) (xs : List LVar) (noDups : σ.noDups) : σ.eqModR σ xs := by
+  simp [*]
+  apply And.intro
+  case left =>
+    intro x sv x_in_σ
+    apply Or.inr
+    exists sv
+  case right =>
+    exists σ.mapVal (fun y _ => y)
+    apply And.intro
+    case left =>
+      intro x sv x_in_σ x_in_xs
+      let h : ((σ.mapVal (fun y _ => y)).find? x).get! = x := by
+        simp [*]
+        induction σ with
+        | nil => simp [*] at x_in_σ
+        | cons x' sv' σ' ih =>
+          simp [*] at noDups
+          simp [*] at ih
+          simp [*]
+          by_cases x_eq_x' : x = x'
+          case pos =>
+            simp [*]
+          case neg =>
+            simp [*] at x_in_σ
+            simp [*] at ih
+            grind only [= List.find?_cons]
+      simp [*] at h
+      simp [*]
+      exists sv
+    case right =>
+      apply And.intro
+      case left =>
+        intro x sv x_in_σ x_not_in_xs x' sv' x'_in_σ x'_not_in_xs y sy y_in_σ y_not_in_xs xy_in_σ x'y_in_σ
+
+
+        sorry
+      case right =>
+        sorry
+
+@[simp] def SymState.eqModR.symm (σ1 σ2 : SymState) (xs : List LVar) (noDups1 : σ1.noDups) (noDups2 : σ2.noDups) : σ1.eqModR σ2 xs → σ2.eqModR σ1 xs := by
+  simp [*]
+  intro h1 h2 h3 κ h4
+  apply And.intro
+  case left =>
+    intro x sv x_in_σ2
+    let h2' := h2 x sv x_in_σ2
+    exact h2'
+  case right =>
+    apply And.intro
+    case left =>
+      intro x sv x_in_σ1
+      let h1' := h1 x sv x_in_σ1
+      exact h1'
+    case right =>
+      apply And.intro
+      case left =>
+        intro x sv x_in_σ2 x_in_xs
+        let x_in_σ1 : ∃ a, (x, a) ∈ σ1.toList := by
+          let h2' := h2 x sv x_in_σ2
+          simp [*] at h2'
+          exact h2'
+        let ⟨a, x_in_σ1'⟩ := x_in_σ1
+        let h3' := h3 x a
+        simp [*]
+      case right =>
+        exists (κ.toList.map (fun (x,x') => (x',x))).toAssocList
+        intro x sv x_in_σ2 x_not_in_xs
+        simp [*]
+
+        /- by_cases x ∈ σ1.dom
+        case pos x_in_σ1 =>
+          simp [*] at x_in_σ1
+          let ⟨sv', h⟩ := x_in_σ1
+          let σ2_find_sv : σ2.find? x = some sv := by
+            rw [SymState.find_noDups]
+            exact x_in_σ2
+            exact noDups2
+          simp [*] at σ2_find_sv
+          let ⟨a, h'⟩ := σ2_find_sv
+          simp [*]
+          let ⟨b, h''⟩ := x_in_σ1
+          let σ1_find_b : σ1.find? x = some b := by
+            rw [SymState.find_noDups]
+            exact h''
+            exact noDups1
+          simp [*] at σ1_find_b
+          let ⟨c, h'''⟩ := σ1_find_b
+          simp [*]
+          sorry
+        case neg x_not_in_σ1 =>
+          sorry -/
