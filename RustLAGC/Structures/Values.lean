@@ -202,7 +202,7 @@ instance : BEq SymState where
     ∧ (∀ x ∈ σ1.dom, ¬x ∈ xs -> ∀ y1 ∈ σ2.dom, ¬y1 ∈ xs -> ∀ y2 ∈ σ2.dom, ¬y2 ∈ xs → (x, y1) ∈ κ.toList ∧ (x, y2) ∈ κ.toList → y1 = y2) -- function
     ∧ (∀ x ∈ σ1.dom, (¬x ∈ xs) -> σ1.find? x = σ2.find? (κ.find? x).get!)
 
-@[simp] def SymState.eqModR.refl (σ : SymState) (xs : List LVar) (noDups : σ.noDups) : σ.eqModR σ xs := by
+@[simp] theorem SymState.eqModR.refl (σ : SymState) (xs : List LVar) (noDups : σ.noDups) : σ.eqModR σ xs := by
   simp [*]
   apply And.intro
   case left =>
@@ -235,13 +235,20 @@ instance : BEq SymState where
     case right =>
       apply And.intro
       case left =>
-        intro x sv x_in_σ x_not_in_xs x' sv' x'_in_σ x'_not_in_xs y sy y_in_σ y_not_in_xs xy_in_σ x'y_in_σ
+        intro x1 sv1 x1_in_σ x1_not_in_xs x2 sv2 x2_in_σ x2_not_in_xs y sy y_in_σ y_not_in_xs x1y_in_σ x2y_in_σ
         induction σ with
-        | nil => simp [*] at x_in_σ
-        | cons x'' sv'' σ' ih =>
-          simp [*] at xy_in_σ x'y_in_σ
-
-          sorry
+        | nil => simp [*] at x1_in_σ
+        | cons x' sv' σ' ih =>
+          simp [*] at x1y_in_σ x2y_in_σ x1_in_σ x2_in_σ y_in_σ
+          by_cases y_x' : y = x'
+          case pos =>
+            simp [*] at x1y_in_σ x2y_in_σ
+            let x1_x' : x1 = x' := by grind only
+            let x2_x' : x2 = x' := by grind only
+            simp [*]
+          case neg =>
+            simp [*] at x1y_in_σ x2y_in_σ
+            grind only
       case right =>
         apply And.intro
         case left =>
@@ -258,10 +265,41 @@ instance : BEq SymState where
               simp [*] at x_in_σ
               exists sv
         case right =>
+          apply And.intro
+          case left =>
+            intro x sv x_in_σ x_not_in_xs y1 sy1 y1_in_σ y1_not_in_xs y2 sy2 y2_in_σ y2_not_in_xs xy1_in_κ xy2_in_κ
+            induction σ with
+            | nil => simp at x_in_σ
+            | cons x' sv' σ' ih =>
+              by_cases h : x = x'
+              case pos =>
+                simp [*] at x_in_σ noDups y1_in_σ y2_in_σ xy1_in_κ xy2_in_κ
+                let y1_x' : y1 = x' := by
+                  grind only
+                let y2_x' : y2 = x' := by grind only
+                simp [*]
+              case neg =>
+                simp [*] at x_in_σ noDups y1_in_σ y2_in_σ xy1_in_κ xy2_in_κ
+                simp [*]
+          case right =>
+            intro x sv x_in_σ x_not_in_xs
+            let h : ((σ.mapVal (fun y _ => y)).find? x).get! = x := by
+              simp [*]
+              induction σ with
+              | nil => simp [*] at x_in_σ
+              | cons x' sv' σ' ih =>
+                simp [*] at noDups x_in_σ
+                simp [*]
+                by_cases x_x' : x = x'
+                case pos => simp [*]
+                case neg =>
+                  simp [*] at x_in_σ
+                  simp [*] at ih
+                  grind only [= List.find?_cons]
+            simp [*] at h
+            simp [*]
 
-          sorry
-
-@[simp] def SymState.eqModR.symm (σ1 σ2 : SymState) (xs : List LVar) (noDups1 : σ1.noDups) (noDups2 : σ2.noDups) : σ1.eqModR σ2 xs → σ2.eqModR σ1 xs := by
+@[simp] theorem SymState.eqModR.symm (σ1 σ2 : SymState) (xs : List LVar) (noDups1 : σ1.noDups) (noDups2 : σ2.noDups) : σ1.eqModR σ2 xs → σ2.eqModR σ1 xs := by
   simp [*]
   intro h1 h2 h3 κ h4 h5 h6 h7 h8
   apply And.intro
