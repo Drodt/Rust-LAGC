@@ -26,7 +26,7 @@ open RStmt
 -- TODO: Sind Listen zukunftsfähig? Besonders im Kontext unendliche Traces
 -- Niklas Arbeits diesbezüglich sichten
 -- Contirnuation Marker bauen
-def eval (σ : SymState := AssocList.nil) (e : RExp) : List SymTrace × ContMarker := match e with
+def eval (σ : SymState) (e : RExp) : List SymTrace × ContMarker := match e with
   | .v a   => ([ singleton σ ], ⟨ .v a ⟩)
   | .not a => ([ singleton σ ], ⟨ .v <| .bool false ⟩)
   | _ => sorry
