@@ -168,6 +168,13 @@ theorem Place.rename_inv (p : Place) (r : Renaming) (r_bij : r.bijective) : (p.r
   | pN p' n ih => simp [*]
   | pI => simp [*]
 
+theorem Place.rename_compose (p : Place) (r1 r2 : Renaming) : (p.rename r1.var).rename r2.var = p.rename (r1.compose r2).var := by
+  simp [*]
+  induction p with
+  | pV x => simp [*]
+  | pN p' n ih => simp [*]
+  | pI p' f ih => simp [*]
+
 @[simp] def Val.rename : Val -> Renaming -> Val
 | .tuple vs, r => .tuple (vs.map (fun v' => v'.rename r))
 | .arr vs, r => .arr (vs.map (fun v' => v'.rename r))
@@ -246,6 +253,22 @@ theorem Val.rename_inv (v : Val) (r : Renaming) (r_bij : r.bijective) : (v.renam
       simp [*] at *
       let ih'' := ih' ih.right
       exact ih''
+
+theorem Val.rename_compose (v : Val) (r1 r2 : Renaming) : (v.rename r1).rename r2 = v.rename (r1.compose r2) := by
+  simp [*]
+  induction v with
+  | b bl => simp [*]
+  | z n => simp [*]
+  | refS p bid => simp [*, Place.rename_compose]
+  | refM p bid => simp [*, Place.rename_compose]
+  | tuple vs ih =>
+    simp [*]
+    intro v v_in_vs
+    apply ih v v_in_vs
+  | arr vs ih =>
+    simp [*]
+    intro v v_in_vs
+    apply ih v v_in_vs
 
 inductive SVal where
 | sym :  SVal               -- Equivalent to *
@@ -636,18 +659,6 @@ instance : BEq SymState where
                 induction sv'' with
                 | sym => simp [*]
                 | val v =>
-                  simp [*]
-                  induction v with
-                  | b bl => simp [*]
-                  | z n => simp [*]
-                  | refS p bid =>
-                    simp [*]
-                    induction p with
-                    | pV x => simp [*]
-                    | pN n => simp [*]
-                    | pI f => simp [*]
-                  | refM p bid => sorry
-                  | tuple vs => sorry
-                  | arr vs => sorry
+                  simp [*, Val.rename_compose]
           case right =>
             sorry
