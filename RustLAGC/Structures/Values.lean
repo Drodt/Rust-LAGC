@@ -403,6 +403,44 @@ def SymState.updateVar (σ : SymState) (x : LVar)  (v : SVal) : SymState := σ.i
         simp [*]
         grind only [→ List.find?_some]
 
+def SymState.list_find_noDups (σ : SymState) (noDups : σ.noDups) (x : LVar) (sv : SVal) : (σ.toList.find? (fun y => y.fst == x) = some (x, sv)) ↔ ((x, sv) ∈ σ.toList) := by
+  let h := SymState.find_noDups σ noDups x sv
+  simp [*] at h
+  apply Iff.intro
+  case mp =>
+    intro find
+    induction σ with
+    | nil => simp [*] at find
+    | cons x' sv' σ' ih =>
+      by_cases x_eq_x' : x = x'
+      case pos =>
+        simp [*] at find h
+        simp [*]
+      case neg =>
+        simp [*]
+        let x'_neq_x : ¬(x' = x) := by grind only
+        simp [*] at find h noDups
+        let ih' := ih noDups.right h find
+        exact ih'
+  case mpr =>
+    intro x_in_σ
+    simp [*] at h
+    let ⟨c, h'⟩ := h
+    simp [*]
+    induction σ with
+    | nil => simp [*] at h'
+    | cons x' sv' σ' ih =>
+      simp [*] at h'
+      by_cases x'_eq_x : x' = x
+      case pos =>
+        simp [*] at h'
+        simp [*]
+      case neg =>
+        let x_neq_x' : ¬(x = x') := by grind only
+        simp [*] at h' h noDups x_in_σ
+        let ih' := ih noDups.right x_in_σ h h'
+        exact ih'
+
 @[simp] def SymState.extends (σ1 σ2 : SymState) : Bool := σ1.all
   (fun x v => σ2.find? x == some v)
 
@@ -547,7 +585,7 @@ instance : BEq SymState where
             let h10' := h10 x sv x_in_σ1 x_not_in_xs
             simp [*]
 
-@[simp] theorem SymState.eqModR_trans (σ1 σ2 σ3 : SymState) (xs : List LVar) (noDups1 : σ1.noDups) (noDups2 : σ2.noDups) (noDups3 : σ3.noDups) : σ1.eqModR σ2 xs ∧ σ2.eqModR σ3 xs → σ1.eqModR σ3 xs := by
+@[simp] theorem SymState.eqModR_trans (σ1 σ2 σ3 : SymState) (xs : List LVar) (noDups1 : σ1.noDups) (noDups3 : σ3.noDups) : σ1.eqModR σ2 xs ∧ σ2.eqModR σ3 xs → σ1.eqModR σ3 xs := by
   intro ⟨h1, h2⟩
   simp [*]
   apply And.intro
@@ -653,7 +691,9 @@ instance : BEq SymState where
                 simp [*]
                 let ⟨sv'', r2r1x_in_σ3⟩ := h2''.left
                 let find_σ3_sv'' : σ3.toList.find? (fun l => l.fst == (r2.var (r1.var x))) = some ((r2.var (r1.var x)), sv'') := by
-                  sorry
+                  let find := SymState.list_find_noDups σ3 noDups3 (r2.var (r1.var x)) sv''
+                  simp [*] at find
+                  exact find
                 simp [*] at find_σ3_sv''
                 simp [*]
                 induction sv'' with
@@ -661,4 +701,36 @@ instance : BEq SymState where
                 | val v =>
                   simp [*, Val.rename_compose]
           case right =>
-            sorry
+            intro x sv x_in_σ3 x_not_in_xs
+            let h2'' := h2'.right.right x sv x_in_σ3 x_not_in_xs
+            apply And.intro
+            case left =>
+              simp [*]
+              let ⟨sv', r2x_in_σ2⟩ := h2''.left
+              let h1'' := h1'.right.right (r2.varInv x) sv' r2x_in_σ2 h2''.right.left
+              exact h1''.left
+            case right =>
+              rw [h2''.right.right]
+              simp [*] at h2''
+              apply And.intro
+              case left =>
+                simp [*]
+                let ⟨sv', r2x_in_σ2⟩ := h2''.left
+                let h1'' := h1'.right.right (r2.varInv x) sv' r2x_in_σ2 h2''.right.left
+                exact h1''.right.left
+              case right =>
+                let ⟨sv', r2x_in_σ2⟩ := h2''.left
+                let h1'' := h1'.right.right (r2.varInv x) sv' r2x_in_σ2 h2''.right.left
+                rw [h1''.right.right]
+                simp [*]
+                let ⟨sv'', r1r2x_in_σ3⟩ := h1''.left
+                let find_σ1_sv'' : σ1.toList.find? (fun l => l.fst == (r1.varInv (r2.varInv x))) = some ((r1.varInv (r2.varInv x)), sv'') := by
+                  let find := SymState.list_find_noDups σ1 noDups1 (r1.varInv (r2.varInv x)) sv''
+                  simp [*] at find
+                  exact find
+                simp [*] at find_σ1_sv''
+                simp [*]
+                induction sv'' with
+                | sym => simp [*]
+                | val v =>
+                  simp [*, Val.rename_compose]
