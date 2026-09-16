@@ -345,7 +345,7 @@ def SymState.updateVar (σ : SymState) (x : LVar)  (v : SVal) : SymState := σ.i
 | AssocList.nil => true
 | AssocList.cons x _ σ' => ¬σ'.contains x ∧ noDups σ'
 
-@[simp] def SymState.find_noDups (σ : SymState) (noDups : σ.noDups) (x : LVar) (sv : SVal) : (σ.find? x = some sv) ↔ ((x, sv) ∈ σ.toList) := by
+@[simp] theorem SymState.find_noDups (σ : SymState) (noDups : σ.noDups) (x : LVar) (sv : SVal) : (σ.find? x = some sv) ↔ ((x, sv) ∈ σ.toList) := by
   simp [*]
   apply Iff.intro
   case mp =>
@@ -403,7 +403,7 @@ def SymState.updateVar (σ : SymState) (x : LVar)  (v : SVal) : SymState := σ.i
         simp [*]
         grind only [→ List.find?_some]
 
-def SymState.list_find_noDups (σ : SymState) (noDups : σ.noDups) (x : LVar) (sv : SVal) : (σ.toList.find? (fun y => y.fst == x) = some (x, sv)) ↔ ((x, sv) ∈ σ.toList) := by
+theorem SymState.list_find_noDups (σ : SymState) (noDups : σ.noDups) (x : LVar) (sv : SVal) : (σ.toList.find? (fun y => y.fst == x) = some (x, sv)) ↔ ((x, sv) ∈ σ.toList) := by
   let h := SymState.find_noDups σ noDups x sv
   simp [*] at h
   apply Iff.intro
