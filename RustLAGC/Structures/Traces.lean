@@ -204,6 +204,42 @@ theorem ConcrMap.list_find_noDups (ρ : ConcrMap) (noDups : ρ.noDups) (x : LVar
         let ih' := ih noDups.right x_in_σ h h'
         exact ih'
 
+theorem ConcrMap.list_comp_find_noDups (ρ : ConcrMap) (noDups : ρ.noDups) (x : LVar) (v : Val) : (ρ.toList.find? ((fun x_1 ↦ x_1.fst == x) ∘ fun x ↦ (x.fst, val x.snd)) = some (x, v)) ↔ ((x, v) ∈ ρ.toList) := by
+  induction ρ with
+  | nil => simp [*]
+  | cons x' v' ρ' ih =>
+    simp [*]
+    apply Iff.intro
+    case mp =>
+      intro h
+      by_cases x_eq_x' : x = x'
+      case pos =>
+        simp [*] at h
+        simp [*]
+      case neg =>
+        simp [*]
+        let x'_neq_x : ¬(x' = x) := by grind only
+        simp [*] at h noDups
+        let ih' := ih noDups.right
+        apply ih'.mp h
+    case mpr =>
+      intro h
+      by_cases x_eq_x' : x = x'
+      case pos =>
+        simp [*] at h noDups
+        let nd := noDups.left x v
+        simp [*]
+        by_cases v = v'
+        case pos p => simp [*]
+        case neg np =>
+          simp [*] at h
+          simp [*] at nd
+      case neg =>
+        let x'_neq_x : ¬(x' = x) := by grind only
+        simp [*] at h noDups
+        let ih' := ih noDups.right
+        simp [*]
+
 @[simp] def ConcrMap.toState (ρ : ConcrMap) : SymState := ρ.mapVal (fun _ v => (SVal.val v))
 
 @[simp] def ConcrMap.applyOnState (ρ : ConcrMap) (σ : SymState) : SymState :=
@@ -482,28 +518,38 @@ theorem ConcrMap.applyOnTrace_allEventVarsSym (ρ : ConcrMap) (τ : SymTrace) (h
       simp [*] at h8
       simp [*]
 
-theorem ConcrMap.applyOnTrace_allEventsSurrounded (ρ : ConcrMap) (τ : SymTrace) (hFor : ρ.isForTr τ) (hWF : τ.wellFormed) :
+theorem ConcrMap.applyOnTrace_allEventsSurrounded (ρ : ConcrMap) (τ : SymTrace) (hFor : ρ.isForTr τ) (es : τ.eventsSurroundedByFittingStates) (noDups : ρ.noDups) :
   (ρ.applyOnTrace τ).eventsSurroundedByFittingStates := by
-  simp [*]
   induction τ with
   | nil => simp [*]
   | cons t τ' ih =>
-    simp [*]
     induction t with
     | state σ =>
-      induction τ' with
-      | nil => simp [*]
-      | cons t' τ'' ih' =>
-        induction t' with
-        | state σ' =>
-          let ρ_for_τ' := ConcrMap.isForTr_cons ρ (TraceElem.state σ) (TraceElem.state σ' :: τ'') hFor
-          let ih1 := ih ρ_for_τ'
+      simp [ConcrMap.applyOnTrace, SymTrace.eventsSurroundedByFittingStates]
+      simp [ConcrMap.isForTr] at hFor ih
+      simp [SymTrace.eventsSurroundedByFittingStates] at es
+      apply ih hFor.right es
+    | event σ1 ev σ2 =>
+      simp [*] at es
+      simp [*]
+      apply And.intro
+      case left =>
+        apply And.intro
+        case left =>
+          intro x v x_in_ρ
+          let fc := ConcrMap.list_comp_find_noDups ρ noDups x v
+          simp [*] at fc
+          simp [*]
+          simp [BEq.beq]
           sorry
-        | event ev =>
+        case right =>
+          intro x sv x_in_σ2
+          simp [*] at hFor
+          let for_σ1 := hFor.left
           sorry
-    | event ev =>
-      simp [*] at hWF
-      sorry
+      case right =>
+        simp [ConcrMap.isForTr] at hFor ih
+        apply ih hFor.right.right es.right
 
 
 @[simp] theorem ConcrMap.applyOnTrace_isConcrete (ρ : ConcrMap) (τ : SymTrace) (hFor : ρ.isForTr τ) (hWF : τ.wellFormed) (hNoDups : ρ.noDups) (noDups : τ.noDups) : (ρ.applyOnTrace τ).isConcrete := by
@@ -528,7 +574,8 @@ theorem ConcrMap.applyOnTrace_allEventsSurrounded (ρ : ConcrMap) (τ : SymTrace
         simp [*] at h2'
         simp [*]
       case right =>
-        let h1 := ConcrMap.applyOnTrace_allEventsSurrounded ρ τ hFor hWF
+        simp at hWF
+        let h1 := ConcrMap.applyOnTrace_allEventsSurrounded ρ τ hFor hWF.right.right
         simp [*] at h1
         simp [*]
   case right =>
