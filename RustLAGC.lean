@@ -2,20 +2,17 @@
 -- import RustLAGC.While
 
 import RustLAGC.Structures.Rust
-import RustLAGC.Structures.Values
-import RustLAGC.Structures.Traces
+import RustLAGC.Structures.Values.Basic
+import RustLAGC.Structures.Traces.Basic
 import RustLAGC.Eval
 
 open SVal
 open SymState
 open SymTrace
-open Event
 
-#eval (update [].toAssocList' ("x", z 2)).toList
-#eval (update [("z", sym), ("x", z 2)].toAssocList' ("z", z 2)).toList
-#eval symb [("x", sym), ("y", b true)].toAssocList'
+#eval (updateVar (SymState.mk []) "x" (val (Val.z 2))).toList
+#eval (updateVar [("z", sym), ("x", (val (Val.z 2)))].toAssocList "z" (val (Val.z 2))).toList
+#eval symb [("x", sym), ("y", (val (Val.b true)))].toAssocList
 
-#check ε 
-#check tS ε [("x", sym), ("y", b true)].toAssocList'
-#check tE ε $ ev [] []
-#check (ε.tS [("x",sym)].toAssocList').tE $ ev [] []
+#check ε
+#check ε ++ [TraceElem.state ([("x", sym), ("y", val (Val.b true))].toAssocList)]
