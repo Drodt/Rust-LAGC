@@ -5,6 +5,7 @@
 -/
 
 import Std
+import ExtendedDeriveDecEq
 import RustLAGC.Data.AssocList
 
 open Std
@@ -31,6 +32,7 @@ inductive BId where
   | mk : LVar → BId
 deriving instance BEq, DecidableEq, ReflBEq, LawfulBEq, Repr for BId
 
+mutual
 /--
   Type of starred values
 -/
@@ -44,7 +46,11 @@ inductive Val where
  -- | struct : LVar → List (String × Val) → Val
   -- | Enums
   -- | Func : List LVar → SVal → SVaL -- Function (?)
-deriving instance Repr, DecidableEq, BEq for Val
+end
+
+derive_deceq Val
+
+deriving instance Repr for Val
 
 @[elab_as_elim, induction_eliminator]
 def Val.induction {motive : Val -> Sort v}
@@ -63,19 +69,6 @@ def Val.induction {motive : Val -> Sort v}
   | .tuple vs => tuple vs fun x _ => @induction motive b z refS refM tuple arr x
   | .arr vs => arr vs fun x _ => @induction motive b z refS refM tuple arr x
   --| .struct s fs => all_struct s fs fun x _ => @induction motive all_b all_z all_ref_s all_ref_m all_tuple all_arr all_struct x.snd
-
-
-instance : ReflBEq Val where
-  rfl {v} := by
-    induction v with
-    | b bl =>
-      simp [BEq.beq]
-      simp [*]
-    | z n => sorry
-    | refS p bid => sorry
-    | refM p bid => sorry
-    | tuple vs ih => sorry
-    | arr vs ih => sorry
 
 structure Renaming where
   var : LVar -> LVar
@@ -296,13 +289,9 @@ theorem SVal.rename_id (sv : SVal) : sv.rename (Renaming.mk (fun y => y) (fun y 
   | sym => simp [*]
   | val v => simp [*, Val.rename_id]
 
-deriving instance Repr for SVal
+deriving instance Repr, DecidableEq for SVal
 
-instance : BEq SVal where
-  beq : SVal -> SVal -> Bool
-  | SVal.sym, SVal.sym => true
-  | SVal.val v1, SVal.val v2 => v1 == v2
-  | _, _ => false
+#check (inferInstance : ReflBEq SVal)
 
 @[simp] def renameOptVal : Option SVal → Renaming → Option SVal
 | .some sv, r => .some (sv.rename r)
@@ -314,7 +303,7 @@ open SVal
   Symbolic state is a list of mappings Var → SVal
   Consider the usage of list-specific operations like `map` via `toList`
 -/
-abbrev SymState := AssocList LVar SVal
+abbrev SymState := _root_.AssocList LVar SVal
 
 /--
   Constructor abbreviation
@@ -462,22 +451,12 @@ instance : BEq SymState where
 
 @[simp] theorem SymState.inSymb_inDom (σ : SymState) (x : LVar) (h : x ∈ σ.symb) : x ∈ σ.dom := by
   simp [*] at h
-  let ⟨sv, ⟨h1, _⟩⟩ := h
   simp [*]
-  exists sv
+  exists sym
 
 @[simp] theorem SymState.inSymb_isSym (σ : SymState) (x : LVar) (h : x ∈ σ.symb) : (x, sym) ∈ σ.toList := by
   simp [*] at h
-  let ⟨sv, h1⟩ := h
-  let h2 : sv = sym := by
-    let h2 := h1.right
-    simp [(· == ·)] at h2
-    induction sv with
-    | sym => simp [*]
-    | val v =>
-      simp [*] at h2
-  simp [*] at h1
-  exact h1.left
+  exact h
 
 @[simp] def SymState.eqModR (σ1 σ2 : SymState) (xs : List LVar) : Prop :=
   σ1.dom.all (fun x => (x ∈ xs) -> x ∈ σ2.dom)
