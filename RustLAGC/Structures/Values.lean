@@ -22,14 +22,14 @@ inductive Place where
   | pV : LVar  → Place          -- Var
   | pN : Place → Nat   → Place          -- Arrays
   | pI : Place → String → Place -- Structs
-deriving instance BEq, Repr for Place
+deriving instance BEq, DecidableEq, Repr for Place
 
 /--
   Type of borrow identifiers
 -/
 inductive BId where
   | mk : LVar → BId
-deriving instance BEq, ReflBEq, LawfulBEq, Repr for BId
+deriving instance BEq, DecidableEq, ReflBEq, LawfulBEq, Repr for BId
 
 /--
   Type of starred values
@@ -44,7 +44,7 @@ inductive Val where
  -- | struct : LVar → List (String × Val) → Val
   -- | Enums
   -- | Func : List LVar → SVal → SVaL -- Function (?)
-deriving instance Repr for Val
+deriving instance Repr, DecidableEq, BEq for Val
 
 @[elab_as_elim, induction_eliminator]
 def Val.induction {motive : Val -> Sort v}
@@ -64,20 +64,13 @@ def Val.induction {motive : Val -> Sort v}
   | .arr vs => arr vs fun x _ => @induction motive b z refS refM tuple arr x
   --| .struct s fs => all_struct s fs fun x _ => @induction motive all_b all_z all_ref_s all_ref_m all_tuple all_arr all_struct x.snd
 
-instance : BEq Val where
-  beq (v v' : Val) : Bool := match v, v' with
-  | .b bl1, .b bl2 => bl1 == bl2
-  | .z bl1, .z bl2 => bl1 == bl2
-  | .refS p1 bid1, .refS p2 bid2 => p1 == p2 ∧ bid1 == bid2
-  | .refM p1 bid1, .refM p2 bid2 => p1 == p2 ∧ bid1 == bid2
-  | .tuple vs1, .tuple vs2 => vs1.length == vs2.length ∧ vs1.zip vs2
 
 instance : ReflBEq Val where
   rfl {v} := by
     induction v with
     | b bl =>
       simp [BEq.beq]
-
+      simp [*]
     | z n => sorry
     | refS p bid => sorry
     | refM p bid => sorry
