@@ -84,128 +84,70 @@ def Val.induction {motive : Val -> Sort v}
 
 
 theorem Place.rename_id (p : Place) : p.rename (fun x => x) = p := by
-  induction p with
-  | pV y =>
-    simp [*]
-  | pN p' n =>
-    simp [*]
-  | pI p' f =>
-    simp [*]
+  induction p <;> simp [*]
 
 theorem Place.rename_inv (p : Place) (r : Renaming) (r_bij : r.bijective) : (p.rename r.var).rename r.varInv = p := by
-  induction p with
-  | pV x =>
+  induction p <;> simp [*]
+  case pV x =>
     simp [*] at *
     apply r_bij.right.right.right.right.left
-  | pN p' n ih => simp [*]
-  | pI => simp [*]
+
 
 theorem Place.rename_compose (p : Place) (r1 r2 : Renaming) : (p.rename r1.var).rename r2.var = p.rename (r1.compose r2).var := by
   simp [*]
-  induction p with
-  | pV x => simp [*]
-  | pN p' n ih => simp [*]
-  | pI p' f ih => simp [*]
+  induction p <;> simp [*]
 
 theorem Val.rename_id (v : Val) : v.rename (Renaming.mk (fun y => y) (fun y => y) (fun y => y) (fun y => y)) = v := by
-  induction v using Val.induction
-  case b bl => simp [*]
-  case z n => simp [*]
-  case refS p bid =>
-    simp [*]
-    apply Place.rename_id
-  case refM p bid =>
-    simp [*]
-    apply Place.rename_id
-  case tuple vs ih =>
-    simp [*]
-    induction vs with
+  induction v using Val.induction <;> simp [*, Place.rename_id] <;> induction ‹List Val› with
     | nil => simp [*]
     | cons v vs' tih =>
       simp [*]
       apply tih
       intro v' v'_in_vs
-      let ih' := ih v'
-      simp [*]
-  case arr vs ih =>
-    simp [*]
-    induction vs with
-    | nil => simp [*]
-    | cons v vs' tih =>
-      simp [*]
-      apply tih
-      intro v' v'_in_vs
-      let ih' := ih v'
+      let ih' := ‹∀ (v_1 : Val), v_1 ∈ v :: vs' →
+        v_1.rename { var := fun y ↦ y, varInv := fun y ↦ y, borrow := fun y ↦ y, borrowInv := fun y ↦ y } = v_1› v'
       simp [*]
 
 theorem Val.rename_inv (v : Val) (r : Renaming) (r_bij : r.bijective) : (v.rename r).rename r.inv = v := by
   simp [*]
-  induction v with
-  | b bl => simp [*]
-  | z n => simp [*]
-  | refS p bid =>
-    simp [*]
-    apply And.intro
+  induction v <;> simp [*] <;> first
+  | apply And.intro
     case left =>
       apply Place.rename_inv
       exact r_bij
     case right =>
       simp [*] at r_bij
       apply r_bij.right.right.right.right.right
-  | refM p bid =>
-    simp [*]
-    apply And.intro
-    case left =>
-      apply Place.rename_inv
-      exact r_bij
-    case right =>
-      simp [*] at r_bij
-      apply r_bij.right.right.right.right.right
-  | tuple vs ih =>
-    simp [*]
-    induction vs with
+  | induction ‹List Val› with
     | nil => simp [*]
     | cons x xs ih' =>
       simp [*] at *
-      let ih'' := ih' ih.right
-      exact ih''
-  | arr vs ih =>
-    simp [*]
-    induction vs with
-    | nil => simp [*]
-    | cons x xs ih' =>
-      simp [*] at *
-      let ih'' := ih' ih.right
+      let ih'' := ih' ‹(x.rename r).rename { var := r.varInv, varInv := r.var, borrow := r.borrowInv, borrowInv := r.borrow } = x ∧
+        ∀ (a : Val),
+          a ∈ xs → (a.rename r).rename { var := r.varInv, varInv := r.var, borrow := r.borrowInv, borrowInv := r.borrow } = a›.right
       exact ih''
 
 theorem Val.rename_compose (v : Val) (r1 r2 : Renaming) : (v.rename r1).rename r2 = v.rename (r1.compose r2) := by
   simp [*]
-  induction v with
-  | b bl => simp [*]
-  | z n => simp [*]
-  | refS p bid => simp [*, Place.rename_compose]
-  | refM p bid => simp [*, Place.rename_compose]
-  | tuple vs ih =>
-    simp [*]
-    intro v v_in_vs
-    apply ih v v_in_vs
-  | arr vs ih =>
-    simp [*]
-    intro v v_in_vs
+  induction v <;> simp [*, Place.rename_compose] <;> first
+  | intro v v_in_vs
+    let vs := ‹List Val›
+    let ih := ‹∀ (v : Val),
+      v ∈ vs →
+      (v.rename r1).rename r2 =
+      v.rename
+        { var := fun x ↦ r2.var (r1.var x), varInv := fun x ↦ r1.varInv (r2.varInv x),
+          borrow := fun x ↦ r2.borrow (r1.borrow x), borrowInv := fun x ↦ r1.borrowInv (r2.borrowInv x) }›
     apply ih v v_in_vs
 
+
 theorem SVal.rename_id (sv : SVal) : sv.rename (Renaming.mk (fun y => y) (fun y => y) (fun y => y) (fun y => y)) = sv := by
-  induction sv with
-  | sym => simp [*]
-  | val v => simp [*, Val.rename_id]
+  induction sv <;> simp [*, Val.rename_id]
 
 @[simp] theorem SymState.isConcrete_empty (σ : SymState) (h : σ = AssocList.nil) : σ.isConcrete := by
   simp [SymState.isConcrete, SymState.symb]
-  have hl : σ.toList = [] := by
-    rw [h]
-    simp
-  rw [hl]
-  simp
+  have hl : σ.toList = [] := by simp [*]
+  simp [*]
 
 @[simp] theorem SymState.find_noDups (σ : SymState) (noDups : σ.noDups) (x : LVar) (sv : SVal) : (σ.find? x = some sv) ↔ ((x, sv) ∈ σ.toList) := by
   simp [*]
