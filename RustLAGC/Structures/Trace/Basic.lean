@@ -7,27 +7,18 @@
 import Std
 
 import RustLAGC.Data.AssocList
-import RustLAGC.Structures.Values.Basic
-import RustLAGC.Structures.Values.Lemmas
+import RustLAGC.Structures.Value.Basic
+import RustLAGC.Structures.Value.Lemmas
+import RustLAGC.Structures.State.Basic
+import RustLAGC.Structures.State.Lemmas
 import RustLAGC.Structures.Rust
 
 open Std
 open Lean
 open SVal
 
-/-
-  /--
-    Type of events
-
-    Alternative to string-based events
-  -/
-  inductive Event where
-    | invEv
-    | compREv
--/
-
 /--
-  Inductive type of event parameters
+  Def. 2.4. Inductive type of event parameters
 -/
 inductive EvPar where
   | var : LVar → EvPar
@@ -36,7 +27,7 @@ inductive EvPar where
 deriving instance BEq for EvPar
 
 /--
-  Inductive type of event markers
+  Def. 2.4. Inductive type of event markers
 -/
 inductive EventMarker where
   | mk : String → List EvPar → EventMarker
@@ -49,6 +40,7 @@ inductive EventMarker where
 
 deriving instance BEq for EventMarker
 
+-- Def. 2.4.
 inductive TraceElem where
 | state : SymState → TraceElem
 | event : SymState → EventMarker → SymState → TraceElem
@@ -65,7 +57,7 @@ deriving instance Inhabited for _root_.TraceElem
 | _ => false
 
 /--
-  Construction of symbolic traces
+  Def. 2.4. Construction of symbolic traces
 -/
 abbrev SymTrace := List _root_.TraceElem
 
@@ -108,33 +100,38 @@ inductive exten  : Prop
 
 -- Example 2.3
 def σ₀: SymState := .mk [("X", sym), ("y", val (Val.b false))]
-#check [TraceElem.event σ₀ ⟨"ev₀", [EvPar.var "X"]⟩ (σ₀.updateVar "y" (val (Val.b true)))]
+#check [TraceElem.event (σ₀.updateVar "y" (val (Val.b true))) ⟨"ev₀", [EvPar.var "X"]⟩ σ₀]
 
 -- Other examples
 -- Empty trace
 #check ε
 
+-- Def. 2.6.
 abbrev ConcrMap := _root_.AssocList LVar Val
 
-@[simp] def ConcrMap.dom (ρ : ConcrMap) : List LVar := ρ.toList.map fun x => x.fst
+namespace ConcrMap
+@[simp] def dom (ρ : ConcrMap) : List LVar := ρ.toList.map fun x => x.fst
 
-@[simp] def ConcrMap.noDups : ConcrMap -> Bool
+@[simp] def noDups : ConcrMap -> Bool
 | .nil => true
 | .cons x _ ρ' => ¬ρ'.contains x ∧ noDups ρ'
 
-@[simp] def ConcrMap.isFor (ρ : ConcrMap) (σ : SymState) : Bool :=
+-- Def. 2.6.
+@[simp] def isFor (ρ : ConcrMap) (σ : SymState) : Bool :=
   σ.symb.all (fun X => ρ.contains X)
   /\ σ.dom.all (fun x => ρ.contains x == (σ.find? x == some SVal.sym))
 
-@[simp] def ConcrMap.toState (ρ : ConcrMap) : SymState := ρ.mapVal (fun _ v => (SVal.val v))
+@[simp] def toState (ρ : ConcrMap) : SymState := ρ.mapVal (fun _ v => (SVal.val v))
 
-@[simp] def ConcrMap.applyOnState (ρ : ConcrMap) (σ : SymState) : SymState :=
+-- Def. 2.6.
+@[simp] def applyOnState (ρ : ConcrMap) (σ : SymState) : SymState :=
   (ρ.toState.toList ++ (σ.toList.filter (fun (x, _) => ¬ρ.contains x))).toAssocList
 
 def ρ₀ : ConcrMap := [("X", Val.z 3)].toAssocList
-#eval ConcrMap.applyOnState ρ₀ σ₀
+#eval applyOnState ρ₀ σ₀
 
-@[simp] def ConcrMap.applyOnEvent (ρ : ConcrMap) (ev : EventMarker) : EventMarker :=
+-- Def. 2.8.
+@[simp] def applyOnEvent (ρ : ConcrMap) (ev : EventMarker) : EventMarker :=
   (.mk ev.1
       (ev.2.map (fun e => match e with
         | EvPar.var x => if let some v := ρ.find? x
@@ -143,12 +140,16 @@ def ρ₀ : ConcrMap := [("X", Val.z 3)].toAssocList
         | EvPar.val _ => e
         )))
 
-@[simp] def ConcrMap.applyOnTraceElem (ρ : ConcrMap) (te : _root_.TraceElem) : _root_.TraceElem := match te with
+-- Def. 2.8.
+@[simp] def applyOnTraceElem (ρ : ConcrMap) (te : _root_.TraceElem) : _root_.TraceElem := match te with
 | TraceElem.state σ => TraceElem.state (ConcrMap.applyOnState ρ σ)
 | TraceElem.event σ1 ev σ2 => TraceElem.event (ρ.applyOnState σ1) (ρ.applyOnEvent ev) (ρ.applyOnState σ2)
 
-@[simp] def ConcrMap.applyOnTrace (ρ : ConcrMap) (τ : SymTrace) : SymTrace :=
+-- Def. 2.8.
+@[simp] def applyOnTrace (ρ : ConcrMap) (τ : SymTrace) : SymTrace :=
   τ.map (fun te => ρ.applyOnTraceElem te)
+
+end ConcrMap
 
 namespace SymTrace
 
@@ -163,9 +164,11 @@ namespace SymTrace
   | TraceElem.event _ ev _ => some ev
   | _ => none)
 
+-- Def. 2.10 (S)
 @[simp] def symb (τ : SymTrace) : List LVar :=
   τ.states.foldl (fun s σ => s ++ σ.symb) []
 
+-- Def. 2.10 (Eq. (3))
 @[simp] def eventsSurroundedByFittingStates (τ : SymTrace) : Bool := match τ with
 | TraceElem.state _ :: τ' => eventsSurroundedByFittingStates τ'
 | TraceElem.event σ1 _ σ2 :: τ' => σ2.extends σ1 ∧ eventsSurroundedByFittingStates τ'
@@ -174,11 +177,13 @@ namespace SymTrace
 @[simp] def noDups (τ : SymTrace) : Bool :=
   τ.states.all SymState.noDups
 
+-- Def. 2.10.
 @[simp] def wellFormed (τ : SymTrace) : Bool :=
   τ.states.all (fun σ => σ.dom.all (fun x => σ.symb.contains x || ¬τ.symb.contains x))
   ∧ τ.events.all (fun ev => ev.vars.all (fun x => τ.symb.contains x))
   ∧ τ.eventsSurroundedByFittingStates
 
+-- Def. 2.10.
 @[simp] def isConcrete (τ : SymTrace) : Bool :=
   τ.wellFormed ∧ τ.symb.isEmpty
 
