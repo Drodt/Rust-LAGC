@@ -7,8 +7,9 @@
 import Std
 import Lean.Data.AssocList
 
-import RustLAGC.Structures.Values.Basic
-import RustLAGC.Structures.Traces.Basic
+import RustLAGC.Structures.Value.Basic
+import RustLAGC.Structures.State.Basic
+import RustLAGC.Structures.Trace.Basic
 import RustLAGC.Structures.Rust
 
 open Std

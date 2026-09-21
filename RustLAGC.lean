@@ -2,8 +2,9 @@
 -- import RustLAGC.While
 
 import RustLAGC.Structures.Rust
-import RustLAGC.Structures.Values.Basic
-import RustLAGC.Structures.Traces.Basic
+import RustLAGC.Structures.Value.Basic
+import RustLAGC.Structures.State.Basic
+import RustLAGC.Structures.Trace.Basic
 import RustLAGC.Eval
 
 open SVal

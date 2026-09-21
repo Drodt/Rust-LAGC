@@ -1,4 +1,4 @@
-import RustLAGC.Structures.Traces.Basic
+import RustLAGC.Structures.Trace.Basic
 
 theorem ConcrMap.find_no_dups (ρ : ConcrMap) (noDups : ρ.noDups) (x : LVar) (v : Val) : (ρ.find? x = some v) ↔ ((x, v) ∈ ρ.toList) := by
   simp [*]
@@ -123,6 +123,7 @@ theorem ConcrMap.list_comp_find_noDups (ρ : ConcrMap) (noDups : ρ.noDups) (x :
   rw [← h3]
   grind only
 
+-- Prop. 2.7.
 @[simp] theorem ConcrMap.applyOnState_isConcrete (ρ : ConcrMap) (σ : SymState) (h : ρ.isFor σ) : (ρ.applyOnState σ).isConcrete :=
   by induction σ with
   | nil =>
@@ -437,7 +438,7 @@ theorem ConcrMap.applyOnTrace_allEventsSurrounded (ρ : ConcrMap) (τ : SymTrace
         simp [SymTrace.noDups] at trNoDups
         apply ih hFor.right.right es.right trNoDups.right.right
 
-
+-- Prop. 2.12.
 @[simp] theorem ConcrMap.applyOnTrace_isConcrete (ρ : ConcrMap) (τ : SymTrace) (hFor : ρ.isForTr τ) (hWF : τ.wellFormed) (hNoDups : ρ.noDups) (noDups : τ.noDups) : (ρ.applyOnTrace τ).isConcrete := by
   simp [*]
   apply And.intro
